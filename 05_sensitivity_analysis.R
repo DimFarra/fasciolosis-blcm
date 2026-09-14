@@ -93,6 +93,29 @@ slaughter_inits <- list(
   list(p=.35, SeL=.45, SpL=.90, SeS=.85, SpS=.90, SeC=.25, SpC=.88)
 )
 
+
+zero_covariance_position <- function(a, b) {
+  lower <- max(-a*b, -(1-a)*(1-b))
+  upper <- min(a*(1-b), (1-a)*b)
+  -lower/(upper-lower)
+}
+
+herd_dependence_inits <- lapply(herd_inits, function(z) {
+  z$uSe <- zero_covariance_position(z$SeS, z$SeC)
+  z$uSp <- zero_covariance_position(z$SpS, z$SpC)
+  z
+})
+
+slaughter_dependence_inits <- lapply(slaughter_inits, function(z) {
+  z$uSeLC <- zero_covariance_position(z$SeL, z$SeC)
+  z$uSeLS <- zero_covariance_position(z$SeL, z$SeS)
+  z$uSeCS <- zero_covariance_position(z$SeC, z$SeS)
+  z$uSpLC <- zero_covariance_position(z$SpL, z$SpC)
+  z$uSpLS <- zero_covariance_position(z$SpL, z$SpS)
+  z$uSpCS <- zero_covariance_position(z$SpC, z$SpS)
+  z
+})
+
 scenarios <- c("widened","uniform_all","beta22_tests","uniform_tests","uniform_prevalence")
 
 for (s in scenarios) {
@@ -162,7 +185,7 @@ d <- list(
   aSeC=p$se_copro[1], bSeC=p$se_copro[2],
   aSpC=p$sp_copro[1], bSpC=p$sp_copro[2]
 )
-x <- fit_model("06_herd_dependence.jags", d, herd_inits,
+x <- fit_model("06_herd_dependence.jags", d, herd_dependence_inits,
                c("p","SeS","SpS","SeC","SpC","covSe","covSp"))
 write.csv(summarise_model(x), "herd_dependence.csv", row.names=FALSE)
 
@@ -178,7 +201,7 @@ d <- list(
   aSeS=p$se_elisa[1], bSeS=p$se_elisa[2],
   aSpS=p$sp_elisa[1], bSpS=p$sp_elisa[2]
 )
-x <- fit_model("07_slaughterhouse_dependence.jags", d, slaughter_inits,
+x <- fit_model("07_slaughterhouse_dependence.jags", d, slaughter_dependence_inits,
                c("p","SeL","SpL","SeC","SpC","SeS","SpS",
                  "covSeLC","covSeLS","covSeCS","covSpLC","covSpLS","covSpCS"))
 write.csv(summarise_model(x), "slaughter_dependence.csv", row.names=FALSE)

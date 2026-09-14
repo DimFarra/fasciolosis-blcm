@@ -1,0 +1,41 @@
+model {
+
+  orientation <- step(SeS + SpS - 1 - 1.0E-8)
+  oneOrient ~ dbern(orientation)
+
+  y[1:8] ~ dmulti(pr[1:8], n)
+
+  d[1] <- (1-SeL)*(1-SeC)*(1-SeS)
+  d[2] <- SeL*(1-SeC)*(1-SeS)
+  d[3] <- (1-SeL)*SeC*(1-SeS)
+  d[4] <- SeL*SeC*(1-SeS)
+  d[5] <- (1-SeL)*(1-SeC)*SeS
+  d[6] <- SeL*(1-SeC)*SeS
+  d[7] <- (1-SeL)*SeC*SeS
+  d[8] <- SeL*SeC*SeS
+
+  fL <- 1-SpL
+  fC <- 1-SpC
+  fS <- 1-SpS
+
+  nd[1] <- (1-fL)*(1-fC)*(1-fS)
+  nd[2] <- fL*(1-fC)*(1-fS)
+  nd[3] <- (1-fL)*fC*(1-fS)
+  nd[4] <- fL*fC*(1-fS)
+  nd[5] <- (1-fL)*(1-fC)*fS
+  nd[6] <- fL*(1-fC)*fS
+  nd[7] <- (1-fL)*fC*fS
+  nd[8] <- fL*fC*fS
+
+  for (k in 1:8) {
+    pr[k] <- p*d[k] + (1-p)*nd[k]
+  }
+
+  p   ~ dbeta(ap, bp)
+  SeL ~ dbeta(aSeL, bSeL)
+  SpL ~ dbeta(aSpL, bSpL)
+  SeC ~ dbeta(aSeC, bSeC)
+  SpC ~ dbeta(aSpC, bSpC)
+  SeS ~ dbeta(aSeS, bSeS)
+  SpS ~ dbeta(aSpS, bSpS)
+}

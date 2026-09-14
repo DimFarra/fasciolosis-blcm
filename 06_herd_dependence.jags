@@ -1,0 +1,43 @@
+model {
+
+  orientation <- step(SeS + SpS - 1 - 1.0E-8)
+  oneOrient ~ dbern(orientation)
+
+  for (i in 1:3) {
+    y[i,1:4] ~ dmulti(pr[i,1:4], n[i])
+
+    pr[i,1] <- p[i] * d00 + (1-p[i]) * nd00
+    pr[i,2] <- p[i] * d10 + (1-p[i]) * nd10
+    pr[i,3] <- p[i] * d01 + (1-p[i]) * nd01
+    pr[i,4] <- p[i] * d11 + (1-p[i]) * nd11
+  }
+
+  d11 <- SeS * SeC + covSe
+  d10 <- SeS * (1-SeC) - covSe
+  d01 <- (1-SeS) * SeC - covSe
+  d00 <- (1-SeS) * (1-SeC) + covSe
+
+  nd11 <- (1-SpS) * (1-SpC) + covSp
+  nd10 <- (1-SpS) * SpC - covSp
+  nd01 <- SpS * (1-SpC) - covSp
+  nd00 <- SpS * SpC + covSp
+
+  loSe <- max(-SeS*SeC, -(1-SeS)*(1-SeC))
+  hiSe <- min(SeS*(1-SeC), (1-SeS)*SeC)
+  uSe ~ dunif(0,1)
+  covSe <- loSe + uSe*(hiSe-loSe)
+
+  loSp <- max(-SpS*SpC, -(1-SpS)*(1-SpC))
+  hiSp <- min(SpS*(1-SpC), (1-SpS)*SpC)
+  uSp ~ dunif(0,1)
+  covSp <- loSp + uSp*(hiSp-loSp)
+
+  p[1] ~ dbeta(ap1, bp1)
+  p[2] ~ dbeta(ap2, bp2)
+  p[3] ~ dbeta(ap3, bp3)
+
+  SeS ~ dbeta(aSeS, bSeS)
+  SpS ~ dbeta(aSpS, bSpS)
+  SeC ~ dbeta(aSeC, bSeC)
+  SpC ~ dbeta(aSpC, bSpC)
+}

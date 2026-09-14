@@ -1,0 +1,22 @@
+name: verify
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install R and JAGS
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y r-base jags r-cran-rjags r-cran-coda
+      - name: Run primary models
+        run: Rscript 04_run_models.R
+      - name: Run sensitivity analyses
+        run: Rscript 05_sensitivity_analysis.R
+      - name: List outputs
+        run: ls -1 *.csv

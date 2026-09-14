@@ -168,7 +168,12 @@ d <- list(
   aSeS=p$se_elisa[1], bSeS=p$se_elisa[2],
   aSpS=p$sp_elisa[1], bSpS=p$sp_elisa[2]
 )
-x <- fit_model("03_slaughterhouse_model.jags", d, slaughter_inits,
+slaughter_inits_sp90 <- lapply(slaughter_inits, function(z) {
+  z$SpL <- max(z$SpL, .95)
+  z
+})
+
+x <- fit_model("03_slaughterhouse_model.jags", d, slaughter_inits_sp90,
                c("p","SeL","SpL","SeC","SpC","SeS","SpS"))
 write.csv(summarise_model(x), "slaughter_liver_sp90.csv", row.names=FALSE)
 

@@ -1,0 +1,113 @@
+model {
+
+  orientation <- step(SeS + SpS - 1 - 1.0E-8)
+  oneOrient ~ dbern(orientation)
+
+  y[1:8] ~ dmulti(pr[1:8], n)
+
+  eps <- 1.0E-10
+
+  mL <- SeL
+  mC <- SeC
+  mS <- SeS
+
+  loSeLC <- max(-mL*mC, -(1-mL)*(1-mC))
+  hiSeLC <- min(mL*(1-mC), (1-mL)*mC)
+  uSeLC ~ dunif(0,1)
+  covSeLC <- loSeLC + uSeLC*(hiSeLC-loSeLC)
+
+  loSeLS <- max(-mL*mS, -(1-mL)*(1-mS))
+  hiSeLS <- min(mL*(1-mS), (1-mL)*mS)
+  uSeLS ~ dunif(0,1)
+  covSeLS <- loSeLS + uSeLS*(hiSeLS-loSeLS)
+
+  loSeCS <- max(-mC*mS, -(1-mC)*(1-mS))
+  hiSeCS <- min(mC*(1-mS), (1-mC)*mS)
+  uSeCS ~ dunif(0,1)
+  covSeCS <- loSeCS + uSeCS*(hiSeCS-loSeCS)
+
+  eLC_D <- mL*mC + covSeLC
+  eLS_D <- mL*mS + covSeLS
+  eCS_D <- mC*mS + covSeCS
+  eLCS_D <- mL*mC*mS + covSeLC*mS + covSeLS*mC + covSeCS*mL
+
+  dRaw[8] <- eLCS_D
+  dRaw[4] <- eLC_D - eLCS_D
+  dRaw[6] <- eLS_D - eLCS_D
+  dRaw[7] <- eCS_D - eLCS_D
+  dRaw[2] <- mL - eLC_D - eLS_D + eLCS_D
+  dRaw[3] <- mC - eLC_D - eCS_D + eLCS_D
+  dRaw[5] <- mS - eLS_D - eCS_D + eLCS_D
+  dRaw[1] <- 1 - mL - mC - mS + eLC_D + eLS_D + eCS_D - eLCS_D
+
+  validD <- step(dRaw[1]-eps) * step(dRaw[2]-eps) * step(dRaw[3]-eps) *
+            step(dRaw[4]-eps) * step(dRaw[5]-eps) * step(dRaw[6]-eps) *
+            step(dRaw[7]-eps) * step(dRaw[8]-eps)
+  oneD ~ dbern(validD)
+
+  for (k in 1:8) {
+    dPos[k] <- max(eps, dRaw[k])
+  }
+  sumD <- sum(dPos[])
+  for (k in 1:8) {
+    d[k] <- dPos[k] / sumD
+  }
+
+  fL <- 1-SpL
+  fC <- 1-SpC
+  fS <- 1-SpS
+
+  loSpLC <- max(-fL*fC, -(1-fL)*(1-fC))
+  hiSpLC <- min(fL*(1-fC), (1-fL)*fC)
+  uSpLC ~ dunif(0,1)
+  covSpLC <- loSpLC + uSpLC*(hiSpLC-loSpLC)
+
+  loSpLS <- max(-fL*fS, -(1-fL)*(1-fS))
+  hiSpLS <- min(fL*(1-fS), (1-fL)*fS)
+  uSpLS ~ dunif(0,1)
+  covSpLS <- loSpLS + uSpLS*(hiSpLS-loSpLS)
+
+  loSpCS <- max(-fC*fS, -(1-fC)*(1-fS))
+  hiSpCS <- min(fC*(1-fS), (1-fC)*fS)
+  uSpCS ~ dunif(0,1)
+  covSpCS <- loSpCS + uSpCS*(hiSpCS-loSpCS)
+
+  eLC_N <- fL*fC + covSpLC
+  eLS_N <- fL*fS + covSpLS
+  eCS_N <- fC*fS + covSpCS
+  eLCS_N <- fL*fC*fS + covSpLC*fS + covSpLS*fC + covSpCS*fL
+
+  nRaw[8] <- eLCS_N
+  nRaw[4] <- eLC_N - eLCS_N
+  nRaw[6] <- eLS_N - eLCS_N
+  nRaw[7] <- eCS_N - eLCS_N
+  nRaw[2] <- fL - eLC_N - eLS_N + eLCS_N
+  nRaw[3] <- fC - eLC_N - eCS_N + eLCS_N
+  nRaw[5] <- fS - eLS_N - eCS_N + eLCS_N
+  nRaw[1] <- 1 - fL - fC - fS + eLC_N + eLS_N + eCS_N - eLCS_N
+
+  validN <- step(nRaw[1]-eps) * step(nRaw[2]-eps) * step(nRaw[3]-eps) *
+            step(nRaw[4]-eps) * step(nRaw[5]-eps) * step(nRaw[6]-eps) *
+            step(nRaw[7]-eps) * step(nRaw[8]-eps)
+  oneN ~ dbern(validN)
+
+  for (k in 1:8) {
+    nPos[k] <- max(eps, nRaw[k])
+  }
+  sumN <- sum(nPos[])
+  for (k in 1:8) {
+    nd[k] <- nPos[k] / sumN
+  }
+
+  for (k in 1:8) {
+    pr[k] <- p*d[k] + (1-p)*nd[k]
+  }
+
+  p   ~ dbeta(ap, bp)
+  SeL ~ dbeta(aSeL, bSeL)
+  SpL ~ dbeta(aSpL, bSpL)
+  SeC ~ dbeta(aSeC, bSeC)
+  SpC ~ dbeta(aSpC, bSpC)
+  SeS ~ dbeta(aSeS, bSeS)
+  SpS ~ dbeta(aSpS, bSpS)
+}

@@ -100,7 +100,7 @@ slaughter_data <- list(
   aSeL = slaughter_priors$se_liver[1],
   bSeL = slaughter_priors$se_liver[2],
   aSpL = slaughter_priors$sp_liver[1],
-  bSpL = slaughter_priors$sp_liver[2],
+  bSpL = slaughter_priors$sp_liver[2],\n  lowerSpL = 0,
   aSeC = transfer["SeC","alpha"],
   bSeC = transfer["SeC","beta"],
   aSpC = transfer["SpC","alpha"],

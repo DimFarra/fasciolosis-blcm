@@ -33,7 +33,7 @@ model {
 
   p   ~ dbeta(ap, bp)
   SeL ~ dbeta(aSeL, bSeL)
-  SpL ~ dbeta(aSpL, bSpL)
+  SpL ~ dbeta(aSpL, bSpL) T(lowerSpL, 1)
   SeC ~ dbeta(aSeC, bSeC)
   SpC ~ dbeta(aSpC, bSpC)
   SeS ~ dbeta(aSeS, bSeS)
